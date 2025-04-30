@@ -1,4 +1,4 @@
-package com.pythongong.community.user;
+package com.pythongong.community;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
