@@ -53,7 +53,7 @@ class ReactiveSqlTest {
                 when(rowsFetchSpec.one()).thenReturn(Mono.just(1));
 
                 // When & Then
-                assertDoesNotThrow(() -> reactiveSql.instert("users", records));
+                assertDoesNotThrow(() -> reactiveSql.insert("users", records));
 
                 assertEquals("instert into users(name, age)  VALUES('John', 25) ",
                                 ReflectionTestUtils.getField(reactiveSql, "sql").toString());
@@ -90,7 +90,7 @@ class ReactiveSqlTest {
                 when(executeSpec.mapValue(Integer.class)).thenReturn(rowsFetchSpec);
                 when(rowsFetchSpec.one()).thenReturn(Mono.just(0));
                 // When & Then
-                StepVerifier.create(reactiveSql.instert("users", records))
+                StepVerifier.create(reactiveSql.insert("users", records))
                                 .expectError(CommunityException.class)
                                 .verify();
         }

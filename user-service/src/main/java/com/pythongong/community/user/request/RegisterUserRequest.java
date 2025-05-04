@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 public record RegisterUserRequest(
-                @Size(min = 1, max = 20) @NotEmpty String userName,
+    @NotEmpty @Size(min = 1, max = 20) String userName,
 
-                @Size(min = 8, max = 20) @NotEmpty String userPassword) {
+    @NotEmpty @Size(min = 8, max = 20) String userPassword,
+
+                @NotEmpty String gender) {
 }

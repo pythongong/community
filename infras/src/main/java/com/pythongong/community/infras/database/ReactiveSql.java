@@ -24,7 +24,7 @@ public class ReactiveSql {
         this.hasWhere = false;
     }
 
-    public Mono<Void> instert(String table, List<RowRecord> rowRecords) {
+    public Mono<Void> insert(String table, List<RowRecord> rowRecords) {
         this.sql.append("instert into ").append(table);
         combineStrs(rowRecords.stream().map((rowRecord) -> rowRecord.column()).toList());
         values(rowRecords.stream().map((rowRecord) -> rowRecord.val()).toList());
