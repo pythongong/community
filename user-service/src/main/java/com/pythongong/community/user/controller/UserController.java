@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pythongong.community.infras.web.CommunityResponse;
+
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -12,7 +14,7 @@ public class UserController {
 
     @GetMapping("/hello")
     public Mono<String> handle() {
-        return Mono.just("Hello WebFlux");
+        return CommunityResponse.ok("xx");
     }
 
 }

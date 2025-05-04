@@ -1,6 +1,10 @@
+server:
+  port: 9000
+
 spring:
   application:
     name: user
-
-server:
-  port: 9000
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/user-mangement?serverTimezone=UTC
+    username: root
+    password: root

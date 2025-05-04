@@ -6,12 +6,11 @@
 		<groupId>com.pythongong.community</groupId>
 		<artifactId>common</artifactId>
 		<version>1.0-SNAPSHOT</version>
-		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>com.pythongong.community</groupId>
 	<artifactId>user-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0-SNAPSHOT</version>
 	<name>user</name>
 
 	<properties>
@@ -19,54 +18,47 @@
 	</properties>
 
 	<dependencies>
-		
-		
+		<dependency>
+			<groupId>com.pythongong.community</groupId>
+            <artifactId>infras</artifactId>
+            <version>1.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>kr.motd.maven</groupId>
-				<artifactId>os-maven-plugin</artifactId>
-				<version>1.7.1</version>
-				<executions>
-					<execution>
-						<id>initialize</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>detect</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.xolstice.maven.plugins</groupId>
-				<artifactId>protobuf-maven-plugin</artifactId>
-				<version>0.6.1</version>
-				<configuration>
-					<protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}</protocArtifact>
-					<pluginId>grpc-java</pluginId>
-					<pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-				</configuration>
-				<executions>
-					<execution>
-						<id>compile</id>
-						<goals>
-							<goal>compile</goal>
-							<goal>compile-custom</goal>
-						</goals>
-						<configuration>
-							<pluginParameter>jakarta_omit,@generated=omit</pluginParameter>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen-maven</artifactId>
+            <executions>
+                <execution>
+                    <id>generate-schema</id>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                        <jdbc>
+                            <driver>com.mysql.cj.jdbc.Driver</driver>
+                            <url>jdbc:mysql://localhost:3306/user_management?serverTimezone=UTC</url>
+                            <user>root</user>
+                            <password>root</password>
+                        </jdbc>
+                        <generator>
+                            <database>
+                                <name>org.jooq.meta.mysql.MySQLDatabase</name>
+                                <includes>community_user</includes> <excludes></excludes>
+                                <inputSchema>user_management</inputSchema> </database>
+                            <target>
+                                <packageName>com.pythongong.community.user.model</packageName> <directory>src/main/java</directory>
+                            </target>
+                        </generator>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
 
 </project>
