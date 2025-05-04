@@ -25,40 +25,4 @@
 		</dependency>
 	</dependencies>
 
-
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq-codegen-maven</artifactId>
-            <executions>
-                <execution>
-                    <id>generate-schema</id>
-                    <phase>generate-sources</phase>
-                    <goals>
-                        <goal>generate</goal>
-                    </goals>
-                    <configuration>
-                        <jdbc>
-                            <driver>com.mysql.cj.jdbc.Driver</driver>
-                            <url>jdbc:mysql://localhost:3306/user_management?serverTimezone=UTC</url>
-                            <user>root</user>
-                            <password>root</password>
-                        </jdbc>
-                        <generator>
-                            <database>
-                                <name>org.jooq.meta.mysql.MySQLDatabase</name>
-                                <includes>community_user</includes> <excludes></excludes>
-                                <inputSchema>user_management</inputSchema> </database>
-                            <target>
-                                <packageName>com.pythongong.community.user.model</packageName> <directory>src/main/java</directory>
-                            </target>
-                        </generator>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
-    </plugins>
-</build>
-
 </project>

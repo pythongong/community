@@ -20,12 +20,10 @@ public class CommnityUserService {
     public void register(RegisterUserRequest registerUserRequest) {
         String userName = registerUserRequest.userName();
 
-        communityUserRepo.selectCountByUserName(userName).flatMap(value -> {
+        communityUserRepo.selectCountByUserName(userName).subscribe(value -> {
             if (value > 0) {
-                return Mono.error(
-                        new IllegalArgumentException("Value must not be greater than zero. Received: " + value));
-            } else {
-                return Mono.empty();
+                Mono.error(
+                        new IllegalArgumentException("User name is duplicated"));
             }
         });
 

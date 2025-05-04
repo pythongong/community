@@ -21,7 +21,6 @@
 		<protobuf-java.version>4.30.2</protobuf-java.version>
 		<spring-grpc.version>0.8.0</spring-grpc.version>
 		<spring-boot.version>3.4.5</spring-boot.version>
-		<jooq.version>3.19.22</jooq.version>
 		<mysql.version>9.3.0</mysql.version>
 	</properties>
 
@@ -32,26 +31,7 @@
 
     <dependencies>
 
-		<!-- https://mvnrepository.com/artifact/org.jooq/jooq -->
-		<dependency>
-			<groupId>org.jooq</groupId>
-			<artifactId>jooq</artifactId>
-			<version>${jooq.version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.jooq/jooq-meta -->
-		<dependency>
-			<groupId>org.jooq</groupId>
-			<artifactId>jooq-meta</artifactId>
-			<version>${jooq.version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.jooq/jooq-codegen -->
-		<dependency>
-			<groupId>org.jooq</groupId>
-			<artifactId>jooq-codegen</artifactId>
-			<version>${jooq.version}</version>
-		</dependency>
+		
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -69,13 +49,6 @@
 			<groupId>io.asyncer</groupId>
 			<artifactId>r2dbc-mysql</artifactId>
 			<version>1.4.1</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<version>9.3.0</version>
 		</dependency>
 
 		<dependency>

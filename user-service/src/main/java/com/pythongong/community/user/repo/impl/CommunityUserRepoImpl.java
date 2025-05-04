@@ -1,7 +1,5 @@
 package com.pythongong.community.user.repo.impl;
 
-import static com.pythongong.community.user.model.tables.CommunityUser.COMMUNITY_USER;
-
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -18,10 +16,11 @@ public class CommunityUserRepoImpl implements CommunityUserRepo {
 
     @Override
     public Mono<Integer> selectCountByUserName(String userName) {
-        return Mono.just(dslContext.selectCount()
-                .from(COMMUNITY_USER)
-                .where(COMMUNITY_USER.USER_NAME.eq(userName))
-                .fetchOne(0, Integer.class));
+        // return Mono.from(dslContext.selectCount()
+        // .from(COMMUNITY_USER)
+        // .where(COMMUNITY_USER.USER_NAME.eq(userName)))
+        // .map(record -> record.into(Integer.class));
+        return null;
     }
 
 }
