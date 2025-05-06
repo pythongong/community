@@ -1,4 +1,4 @@
-package com.pythongong.community.infras.enums;
+package com.pythongong.community.user.constant.enums;
 
 public enum Gender {
     MALE(0),
@@ -16,6 +16,6 @@ public enum Gender {
                 return g.value;
             }
         }
-        return -1; 
+        return -1;
     }
 }

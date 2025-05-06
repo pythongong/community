@@ -1,5 +1,5 @@
 package com.pythongong.community.infras.database;
 
-public record RowRecord(String column, String val) {
+public record SqlColumn(String column, Object val) {
 
 }

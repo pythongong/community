@@ -1,12 +1,13 @@
 package com.pythongong.community.infras.database;
 
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,13 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.r2dbc.core.DatabaseClient;
-import org.springframework.r2dbc.core.RowsFetchSpec;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import com.pythongong.community.infras.exception.CommunityException;
-
+import org.springframework.r2dbc.core.FetchSpec;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @SuppressWarnings(value = { "rawtypes", "unchecked" })
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +28,7 @@ class ReactiveSqlTest {
         private DatabaseClient.GenericExecuteSpec executeSpec;
 
         @Mock
-        private RowsFetchSpec rowsFetchSpec;
+        private FetchSpec fetchSpec;
 
         @Mock
         private DatabaseClient databaseClient;
@@ -45,53 +41,34 @@ class ReactiveSqlTest {
         @Test
         void testInsert() {
                 // Given
-                List<RowRecord> records = Arrays.asList(
-                                new RowRecord("name", "'John'"),
-                                new RowRecord("age", "25"));
+                List<SqlColumn> records = Arrays.asList(
+                                new SqlColumn("name", "'John'"),
+                                new SqlColumn("age", "25"));
                 when(databaseClient.sql(anyString())).thenReturn(executeSpec);
-                when(executeSpec.mapValue(Integer.class)).thenReturn(rowsFetchSpec);
-                when(rowsFetchSpec.one()).thenReturn(Mono.just(1));
+                when(executeSpec.bindValues(anyMap())).thenReturn(executeSpec);
+                when(executeSpec.fetch()).thenReturn(fetchSpec);
+                when(fetchSpec.rowsUpdated()).thenReturn(Mono.just(1L));
 
                 // When & Then
-                assertDoesNotThrow(() -> reactiveSql.insert("users", records));
-
-                assertEquals("instert into users(name, age)  VALUES('John', 25) ",
-                                ReflectionTestUtils.getField(reactiveSql, "sql").toString());
+                reactiveSql.insert("users", records).subscribe(num -> {
+                        assertTrue(num == 1);
+                });
 
         }
 
         @Test
         void testCount() {
                 // Given
-                reactiveSql.from("users").eq("name", "'John'").eq("age", "25");
+                reactiveSql.eq("name", "'John'").eq("age", 25);
                 when(databaseClient.sql(anyString())).thenReturn(executeSpec);
-                when(executeSpec.mapValue(Integer.class)).thenReturn(rowsFetchSpec);
-                when(rowsFetchSpec.one()).thenReturn(Mono.just(5));
+                when(executeSpec.bindValues(anyMap())).thenReturn(executeSpec);
+                when(executeSpec.fetch()).thenReturn(fetchSpec);
+                when(fetchSpec.one()).thenReturn(Mono.just(Map.of("count(*)", 5L)));
 
                 // When
-                Mono<Integer> result = reactiveSql.count();
+                Mono<Long> result = reactiveSql.count("users");
 
                 // Then
-                StepVerifier.create(result)
-                                .expectNext(5)
-                                .verifyComplete();
-
-                assertEquals("select count(*) from users where name = 'John' and age = 25",
-                                ReflectionTestUtils.getField(reactiveSql, "sql").toString());
-        }
-
-        @Test
-        void testInsertShouldThrowErrorWhenCountIsNotOne() {
-                // Given
-                List<RowRecord> records = Arrays.asList(
-                                new RowRecord("name", "'John'"),
-                                new RowRecord("age", "25"));
-                when(databaseClient.sql(anyString())).thenReturn(executeSpec);
-                when(executeSpec.mapValue(Integer.class)).thenReturn(rowsFetchSpec);
-                when(rowsFetchSpec.one()).thenReturn(Mono.just(0));
-                // When & Then
-                StepVerifier.create(reactiveSql.insert("users", records))
-                                .expectError(CommunityException.class)
-                                .verify();
+                result.subscribe(num -> assertTrue(num == 5));
         }
 }

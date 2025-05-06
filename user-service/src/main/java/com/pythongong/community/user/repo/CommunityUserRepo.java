@@ -6,9 +6,9 @@ import reactor.core.publisher.Mono;
 
 public interface CommunityUserRepo {
 
-    Mono<Integer> selectCountByUserName(String userName);
+    Mono<Long> selectCountByUserName(String userName);
 
-    Mono<? extends Void> insert(CommunityUser communityUser);
+    Mono<Long> insert(CommunityUser communityUser);
 
     // void insert(CommunityUserRecord userRecord);
 }

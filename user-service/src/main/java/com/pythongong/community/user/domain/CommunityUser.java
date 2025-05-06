@@ -8,6 +8,14 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class CommunityUser {
+
+    public static final String TABLE_NAME = "community_user";
+
+    public static final String USER_NAME = "user_name";
+    public static final String USER_PASSWORD = "user_password";
+    public static final String GENDER = "gender";
+    public static final String USER_TYPE = "user_type";
+
     /**
      * Unique auto-incrementing integer identifier for each user
      */

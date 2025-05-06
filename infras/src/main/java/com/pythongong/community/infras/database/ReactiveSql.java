@@ -1,10 +1,12 @@
 package com.pythongong.community.infras.database;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.r2dbc.core.DatabaseClient;
-
-import com.pythongong.community.infras.exception.CommunityException;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -12,77 +14,56 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ReactiveSql {
 
-    private final DatabaseClient databaseClient;
+        private final DatabaseClient databaseClient;
 
-    private StringBuilder sql;
+        private final List<String> whereClauses;
 
-    private boolean hasWhere;
+        private final Map<String, Object> bindMap;
 
-    public ReactiveSql(DatabaseClient databaseClient) {
-        this.databaseClient = databaseClient;
-        this.sql = new StringBuilder();
-        this.hasWhere = false;
-    }
-
-    public Mono<Void> insert(String table, List<RowRecord> rowRecords) {
-        this.sql.append("instert into ").append(table);
-        combineStrs(rowRecords.stream().map((rowRecord) -> rowRecord.column()).toList());
-        values(rowRecords.stream().map((rowRecord) -> rowRecord.val()).toList());
-        String sqlStr = this.sql.toString();
-        return databaseClient.sql(sqlStr).mapValue(Integer.class).one().flatMap((count) -> {
-            if (count != 1) {
-                return Mono.error(new CommunityException("Insert: {" + sqlStr + "} failed"));
-            }
-            return Mono.empty();
-        });
-    }
-
-    public Mono<Integer> count() {
-        this.sql = new StringBuilder("select count(*)").append(this.sql);
-        return databaseClient.sql(this.sql.toString()).mapValue(Integer.class).one();
-    }
-
-    private void values(List<String> values) {
-        this.sql.append(" VALUES");
-        combineStrs(values);
-    }
-
-    public ReactiveSql from(String table) {
-        this.sql.append(" from ").append(table);
-        return this;
-    }
-
-    public ReactiveSql eq(String column, String val) {
-        initCondition();
-        this.sql.append(column).append(" = ").append(val);
-        return this;
-    }
-
-    private void initCondition() {
-        if (!hasWhere) {
-            addWhere();
-            hasWhere = true;
-        } else {
-            addAnd();
+        public ReactiveSql(DatabaseClient databaseClient) {
+                this.whereClauses = new ArrayList<>();
+                this.bindMap = new HashMap<>();
+                this.databaseClient = databaseClient;
         }
-    }
 
-    private void addAnd() {
-        this.sql.append(" and ");
-    }
+        public Mono<Long> insert(String tableName, List<SqlColumn> dataToBind) {
+                String columns = dataToBind.stream()
+                                .map(sqlColumn -> sqlColumn.column())
+                                .collect(Collectors.joining(", "));
 
-    private void addWhere() {
-        this.sql.append(" where ");
-    }
+                String placeholders = dataToBind.stream()
+                                .map(sqlColumn -> ":" + sqlColumn.column()) // Using named placeholders
+                                .collect(Collectors.joining(", "));
 
-    private void combineStrs(List<String> values) {
-        this.sql.append("(");
+                String sql = String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, columns, placeholders);
 
-        for (int i = 0; i < values.size() - 1; i++) {
-            this.sql.append(values.get(i)).append(", ");
+                log.info("sql: {}", sql);
+                // Convert List<KeyValue> to Map<String, Object>
+                dataToBind.forEach(sqlColumn -> bindMap.put(sqlColumn.column(), sqlColumn.val()));
+
+                return databaseClient.sql(sql)
+                                .bindValues(bindMap)
+                                .fetch()
+                                .rowsUpdated();
         }
-        this.sql.append(values.get(values.size() - 1));
-        this.sql.append(") ");
-    }
+
+        public Mono<Long> count(String tableName) {
+                String sql = String.format("SELECT count(*) FROM %s WHERE %s ", tableName,
+                                whereClauses.stream().collect(Collectors.joining(" AND ")));
+                log.info("sql: {}", sql);
+                return databaseClient.sql(sql)
+                                .bindValues(bindMap)
+                                .fetch()
+                                .one()
+                                .map(row -> {
+                                        return (Long) row.get("count(*)");
+                                });
+        }
+
+        public ReactiveSql eq(String column, Object val) {
+                this.whereClauses.add(column + " = :" + column);
+                this.bindMap.put(column, val);
+                return this;
+        }
 
 }
