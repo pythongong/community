@@ -8,3 +8,7 @@ spring:
     url: r2dbc:mysql://localhost:3306/user_management?serverTimezone=UTC
     username: root
     password: root
+
+jwt:
+  secret: your-secret-key-should-be-very-long-and-secure
+  expiration: 86400 # 24 hours in seconds

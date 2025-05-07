@@ -5,49 +5,44 @@ import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
+
 @Data
 @Accessors(chain = true)
+@Table("community_user")
 public class CommunityUser {
-
-    public static final String TABLE_NAME = "community_user";
+    // public static final String TABLE_NAME = "community_user";
 
     public static final String USER_NAME = "user_name";
     public static final String USER_PASSWORD = "user_password";
     public static final String GENDER = "gender";
     public static final String USER_TYPE = "user_type";
 
-    /**
-     * Unique auto-incrementing integer identifier for each user
-     */
+    @Id
+    @Column("id")
     private Integer id;
 
-    /**
-     * Timestamp of user record creation
-     */
+    @CreatedDate
+    @Column("create_time")
     private LocalDateTime createTime;
 
-    /**
-     * Timestamp of last user record update
-     */
+    @LastModifiedDate
+    @Column("update_time")
     private LocalDateTime updateTime;
 
-    /**
-     * Unique username (1-20 characters)
-     */
+    @Column("user_name")
     private String userName;
 
-    /**
-     * User password (8-20 characters, store encrypted value)
-     */
+    @Column("user_password")
     private String userPassword;
 
-    /**
-     * User gender (0: male, 1: female)
-     */
+    @Column("gender")
     private Integer gender;
 
-    /**
-     * Type of the user (REGULAR, OFFICIAL, KOL)
-     */
+    @Column("user_type")
     private String userType;
 }

@@ -1,14 +1,9 @@
 package com.pythongong.community.user.repo;
 
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+
 import com.pythongong.community.user.domain.CommunityUser;
 
-import reactor.core.publisher.Mono;
+public interface CommunityUserRepo extends ReactiveCrudRepository<CommunityUser, Integer>, CustomCommunityUserRepo {
 
-public interface CommunityUserRepo {
-
-    Mono<Long> selectCountByUserName(String userName);
-
-    Mono<Long> insert(CommunityUser communityUser);
-
-    // void insert(CommunityUserRecord userRecord);
 }

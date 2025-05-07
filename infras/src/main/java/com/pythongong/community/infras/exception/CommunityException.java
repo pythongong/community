@@ -5,7 +5,9 @@ import lombok.Getter;
 @Getter
 public class CommunityException extends RuntimeException {
 
-    public static final int COMMON_ERROR = 10;
+    public static final int COMMON_ERROR = 100;
+
+    public static final int UNAUTHORIZED = 101;
 
     private int code;
 
