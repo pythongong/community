@@ -8,7 +8,7 @@ CREATE DATABASE IF NOT EXISTS user_management
 
 USE user_management;
 CREATE TABLE community_user (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Unique auto-incrementing integer identifier for each user',
+    id BIG_INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Unique auto-incrementing integer identifier for each user',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'Timestamp of user record creation',
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT 'Timestamp of last user record update',
     deleted BOOLEAN DEFAULT FALSE NOT NULL COMMENT 'Flag indicating whether the user record has been deleted',

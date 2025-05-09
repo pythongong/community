@@ -24,7 +24,7 @@ public class CommunityUser {
 
     @Id
     @Column("id")
-    private Integer id;
+    private Long id;
 
     @CreatedDate
     @Column("create_time")

@@ -70,7 +70,7 @@ public class TokenService {
             .getPayload();
 
         AuthUserInfo userInfo = new AuthUserInfo(
-            Integer.valueOf(claims.getSubject()),
+            Long.valueOf(claims.getSubject()),
             claims.get("userType", String.class)
         );
 
