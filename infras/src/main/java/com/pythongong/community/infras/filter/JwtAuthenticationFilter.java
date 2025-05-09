@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter implements WebFilter {
 
             // Add user info to the exchange attributes
             AuthUserContext.set(
-                    new AuthUserInfo(Integer.valueOf(claims.getSubject()), claims.get("userType", String.class)));
+                    new AuthUserInfo(Long.valueOf(claims.getSubject()), claims.get("userType", String.class)));
             return chain.filter(exchange);
         } catch (Exception e) {
             return Mono.error(new CommunityException("Invalid JWT token", CommunityException.UNAUTHORIZED));
