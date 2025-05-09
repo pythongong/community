@@ -22,10 +22,10 @@ package com.pythongong.community.infras.util;
  *
  * @author Cheng Gong
  */
-public class StringUtils {
+public class StringUtil {
 
     /** Private constructor to prevent instantiation */
-    private StringUtils() {
+    private StringUtil() {
     }
 
     /**

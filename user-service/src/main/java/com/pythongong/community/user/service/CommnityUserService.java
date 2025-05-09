@@ -1,14 +1,13 @@
 package com.pythongong.community.user.service;
 
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ServerWebExchange;
 
-import com.pythongong.community.infras.config.JwtConfig;
-import com.pythongong.community.infras.enums.UserType;
 import com.pythongong.community.infras.exception.CommunityException;
+import com.pythongong.community.infras.util.StringUtil;
+import com.pythongong.community.infras.web.AuthUserInfo;
 import com.pythongong.community.user.constant.enums.Gender;
 import com.pythongong.community.user.domain.CommunityUser;
 import com.pythongong.community.user.repo.CommunityUserRepo;
@@ -16,25 +15,23 @@ import com.pythongong.community.user.request.LoginUserRequest;
 import com.pythongong.community.user.request.RegisterUserRequest;
 import com.pythongong.community.user.vo.LoginUserVo;
 
-import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CommnityUserService {
 
     public static final String USER_INSERTION_ERROR = "User insertion failed";
 
-    public static final String GENDER_INVALID = "";
+    @Value("${user-service.defalut-avatar}")
+    private String defaultAvatar;
 
-    private static final UserType DEFAUL_TYPE = UserType.REGULAR;
+    private final CommunityUserRepo communityUserRepo;
 
-    @Autowired
-    private CommunityUserRepo communityUserRepo;
-
-    @Autowired
-    private JwtConfig jwtConfig;
+    private final TokenService tokenService;
 
     public Mono<Void> register(RegisterUserRequest registerUserRequest) {
 
@@ -61,8 +58,12 @@ public class CommnityUserService {
             CommunityUser communityUser = new CommunityUser();
             communityUser.setUserName(userName)
                     .setUserPassword(encoder.encode(registerUserRequest.userPassword()))
-                    .setUserType(DEFAUL_TYPE.name())
-                    .setGender(genderVal);
+                    .setGender(genderVal)
+                    .setNickName(registerUserRequest.nickName())
+                    .setAvatar(StringUtil.isEmpty(registerUserRequest.avatar())
+                            ? registerUserRequest.avatar()
+                            : defaultAvatar)
+                    .setUserProfile(registerUserRequest.userProfile());
 
             return communityUserRepo.save(communityUser)
                     .flatMap(user -> {
@@ -77,7 +78,7 @@ public class CommnityUserService {
         });
     }
 
-    public Mono<LoginUserVo> login(LoginUserRequest request) {
+    public Mono<LoginUserVo> login(LoginUserRequest request, ServerWebExchange exchange) {
         String userName = request.userName();
 
         return communityUserRepo.selectOneByUserName(userName).map(user -> {
@@ -89,15 +90,13 @@ public class CommnityUserService {
             if (!encoder.matches(request.userPassword(), password)) {
                 throw new CommunityException("Password is wrong", CommunityException.COMMON_ERROR);
             }
+            AuthUserInfo authUserInfo = new AuthUserInfo(user.getId(), user.getUserType());
 
-            String token = Jwts.builder()
-                    .subject(user.getId().toString())
-                    .claim("userType", user.getUserType())
-                    .issuedAt(new Date())
-                    .expiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration() * 1000))
-                    .signWith(jwtConfig.secretKey())
-                    .compact();
-            return new LoginUserVo(userName, user.getUserType(), token);
+            String accessToken = tokenService.generateAccessToken(authUserInfo);
+            String refreshToken = tokenService.generateRefreshToken(authUserInfo);
+
+            tokenService.setRefreshTokenCookie(exchange, refreshToken);
+            return new LoginUserVo(userName, user.getUserType(), accessToken);
         });
     }
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.pythongong.community.infras.exception.CommunityException;
 import com.pythongong.community.user.domain.CommunityUser;
+import com.pythongong.community.user.enums.UserStatus;
 import com.pythongong.community.user.repo.CustomCommunityUserRepo;
 
 import reactor.core.publisher.Mono;
@@ -20,13 +21,17 @@ public class CommunityUserRepoImpl implements CustomCommunityUserRepo {
 
     @Override
     public Mono<Long> selectCountByUserName(String userName) {
-        return entityTemplate.count(Query.query(Criteria.where(CommunityUser.USER_NAME).is(userName)), CommunityUser.class);
+        Criteria criteria = Criteria.where(CommunityUser.USER_NAME).is(userName)
+        .and(CommunityUser.USER_STATUS).is(UserStatus.ACTIVE.name());
+        return entityTemplate.count(Query.query(criteria), CommunityUser.class);
         
     } 
 
     @Override
     public Mono<CommunityUser> selectOneByUserName(String userName) {
-        return entityTemplate.select(Query.query(Criteria.where(CommunityUser.USER_NAME).is(userName)), CommunityUser.class)
+        Criteria criteria = Criteria.where(CommunityUser.USER_NAME).is(userName)
+        .and(CommunityUser.USER_STATUS).is(UserStatus.ACTIVE.name());
+        return entityTemplate.select(Query.query(criteria), CommunityUser.class)
                 .collectList()
                 .flatMap(users -> {
                     if (users.size() > 1) {

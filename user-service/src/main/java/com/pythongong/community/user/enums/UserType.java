@@ -1,4 +1,4 @@
-package com.pythongong.community.infras.enums;
+package com.pythongong.community.user.enums;
 
 public enum UserType {
 

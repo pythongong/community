@@ -2,6 +2,8 @@ package com.pythongong.community.infras.filter;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -9,6 +11,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
 import com.pythongong.community.infras.exception.CommunityException;
+import com.pythongong.community.infras.util.StringUtil;
 import com.pythongong.community.infras.web.AuthUserContext;
 import com.pythongong.community.infras.web.AuthUserInfo;
 
@@ -19,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class JwtAuthenticationFilter implements WebFilter {
 
     private final SecretKey jwtSecretKey;
@@ -28,12 +32,12 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
-        if (!path.startsWith("/auth")) {
+        if (!path.matches("^/(front|back)/.*/auth.*")) {
             return chain.filter(exchange);
         }
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+        if (StringUtil.isEmpty(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
             return Mono.error(new CommunityException("Invalid or missing JWT token", CommunityException.UNAUTHORIZED));
         }
 
