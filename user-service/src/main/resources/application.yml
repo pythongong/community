@@ -17,5 +17,9 @@ jwt:
   secret: X80DQf9Jp7sgufQw5aHb5SgnjqRVNgx9+PhAPEHIFv8DT7kPiF45YIta+YG2OJkWKZbTYpXA5W6HOQQrhFP/yA==
   expiration: 86400 # 24 hours in seconds
 
+grpc:
+  server:
+    port: 9090
+
 user-service:
   defalut-avatar: https://github.com/pythongong/images/blob/main/Gemini_Generated_Image_buc8kqbuc8kqbuc8.png
