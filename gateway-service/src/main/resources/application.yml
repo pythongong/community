@@ -1,0 +1,21 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: gateway-service
+
+jwt:
+  secret: export JWT_SECRET="Zy8#vT!3eLp@kR9sXw2%qJn^BdGmCz4aUfEhTiY0MoNb6AjVxK"
+  expiration: 86400000 # 24 hours in milliseconds
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user_service
+          uri: https://localhost:9001
+          predicates:
+            - Path=/users/**
+          filters:
+            - AddResponseHeader=X-Request-header, header-value

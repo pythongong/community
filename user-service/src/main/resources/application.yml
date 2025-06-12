@@ -1,5 +1,4 @@
-server:
-  port: 9000
+
 
 spring:
   application:
@@ -18,8 +17,8 @@ jwt:
   expiration: 86400 # 24 hours in seconds
 
 grpc:
-  server:
-    port: 9090
+  port: 9000
+  enableReflection: true
 
 user-service:
   defalut-avatar: https://github.com/pythongong/images/blob/main/Gemini_Generated_Image_buc8kqbuc8kqbuc8.png

@@ -1,150 +1,194 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
+	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.5.0</version>
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
-    <groupId>com.pythongong.community</groupId>
-    <artifactId>common</artifactId>
-    <version>1.0-SNAPSHOT</version>
+	<groupId>com.pythongong.community</groupId>
+	<artifactId>community-parent</artifactId>
+	<version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-    <properties>
+	<properties>
 		<java.version>17</java.version>
-		<grpc.version>1.72.0</grpc.version>
-		<protobuf-java.version>4.30.2</protobuf-java.version>
-		<spring-grpc.version>0.8.0</spring-grpc.version>
-		<spring-boot.version>3.4.5</spring-boot.version>
+		<grpc.version>1.71.0</grpc.version>
+		<spring-boot.version>3.5.0</spring-boot.version>
 		<mysql.version>9.3.0</mysql.version>
 		<jwt.version>0.12.6</jwt.version>
+		<protobuf-java.version>3.25.5</protobuf-java.version>
 	</properties>
 
 	<modules>
+		<module>gateway-service</module>
+		<module>infras-service</module>
 		<module>user-service</module>
-		<module>infras</module>
 	</modules>
 
-    <dependencies>
-
-		<dependency>
-    <groupId>org.springdoc</groupId>
-    <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-    <version>2.8.6</version>
-</dependency>
-
-<dependency>
-		<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>${jwt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-crypto</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-
-		<!-- Spring Data R2DBC -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-r2dbc</artifactId>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/io.asyncer/r2dbc-mysql -->
-		<dependency>
-			<groupId>io.asyncer</groupId>
-			<artifactId>r2dbc-mysql</artifactId>
-			<version>1.4.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-services</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.grpc</groupId>
-			<artifactId>spring-grpc-spring-boot-starter</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.grpc</groupId>
-			<artifactId>spring-grpc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
-            <scope>provided</scope>
-        </dependency>
-		
-	</dependencies>
-
 	<dependencyManagement>
+
 		<dependencies>
+
+
 			<dependency>
-				<groupId>org.springframework.grpc</groupId>
-				<artifactId>spring-grpc-dependencies</artifactId>
-				<version>${spring-grpc.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>io.grpc</groupId>
+				<artifactId>grpc-services</artifactId>
+				<version>${grpc.version}</version>
+			</dependency>
+
+			<!-- https://mvnrepository.com/artifact/io.github.lognet/grpc-spring-boot-starter -->
+			<dependency>
+				<groupId>io.github.lognet</groupId>
+				<artifactId>grpc-spring-boot-starter</artifactId>
+				<version>5.2.0</version>
+			</dependency>
+
+			<!-- https://mvnrepository.com/artifact/io.asyncer/r2dbc-mysql -->
+			<dependency>
+				<groupId>io.asyncer</groupId>
+				<artifactId>r2dbc-mysql</artifactId>
+				<version>1.4.1</version>
+			</dependency>
+
+
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-api</artifactId>
+				<version>${jwt.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-impl</artifactId>
+				<version>${jwt.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-jackson</artifactId>
+				<version>${jwt.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+
+
+			<!--
+			https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-gateway-server-webflux -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+				<version>4.3.0</version>
+			</dependency>
+
+
+			<!--
+			https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-circuitbreaker-reactor-resilience4j -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+				<version>3.3.0</version>
+			</dependency>
+			<!--
+			https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto -->
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-crypto</artifactId>
+				<version>6.5.0</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-validation</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+
+			<!-- Spring Data R2DBC -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-r2dbc</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+
+			<!-- https://mvnrepository.com/artifact/io.asyncer/r2dbc-mysql -->
+			<dependency>
+				<groupId>io.asyncer</groupId>
+				<artifactId>r2dbc-mysql</artifactId>
+				<version>1.4.1</version>
+			</dependency>
+
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-test</artifactId>
+				<version>${spring-boot.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!--
+			https://mvnrepository.com/artifact/io.projectreactor/reactor-test -->
+			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-test</artifactId>
+				<version>3.8.0-M3</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>1.18.36</version>
+				<scope>provided</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.7.1</version>
-            </extension>
-        </extensions>
-        <plugins>
-            <plugin>
-                <groupId>org.xolstice.maven.plugins</groupId>
-                <artifactId>protobuf-maven-plugin</artifactId>
-                <version>0.6.1</version>
-                <configuration>
-                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-                    <pluginId>grpc-java</pluginId>
-                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>compile-custom</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+		<pluginManagement>
+			<plugins>
+				<!-- Protobuf plugin to generate Java code from .proto -->
+				<plugin>
+					<groupId>io.github.ascopes</groupId>
+					<artifactId>protobuf-maven-plugin</artifactId>
+					<version>3.3.1</version>
+					<configuration>
+						<sourceDirectories>
+							<sourceDirectory>../infras-service/src/main/proto</sourceDirectory>
+							<sourceDirectory>src/main/proto</sourceDirectory>
+						</sourceDirectories>
+						<protocVersion>${protobuf-java.version}</protocVersion>
+						<binaryMavenPlugins>
+							<binaryMavenPlugin>
+								<groupId>io.grpc</groupId>
+								<artifactId>protoc-gen-grpc-java</artifactId>
+								<version>${grpc.version}</version>
+								<options>jakarta_omit,@generated=omit</options>
+							</binaryMavenPlugin>
+						</binaryMavenPlugins>
+					</configuration>
+					<executions>
+						<execution>
+							<?m2e execute onConfiguration,onIncremental?>
+							<id>generate</id>
+							<goals>
+								<goal>generate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+
 </project>

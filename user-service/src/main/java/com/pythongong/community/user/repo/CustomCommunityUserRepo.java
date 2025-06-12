@@ -1,6 +1,6 @@
 package com.pythongong.community.user.repo;
 
-import com.pythongong.community.user.domain.CommunityUser;
+import com.pythongong.community.user.model.CommunityUser;
 
 import reactor.core.publisher.Mono;
 
