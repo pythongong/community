@@ -2,10 +2,10 @@ package com.pythongong.community.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@EnableR2dbcRepositories
-@SpringBootApplication(scanBasePackages = { "com.pythongong.community" })
+@EnableJpaRepositories
+@SpringBootApplication(scanBasePackages = "com.pythongong.community")
 public class UserServiceApplication {
 
 	public static void main(String[] args) {

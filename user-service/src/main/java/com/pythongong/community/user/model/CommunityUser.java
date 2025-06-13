@@ -5,15 +5,18 @@ import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.data.relational.core.mapping.Column;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Data
 @Accessors(chain = true)
-@Table("community_user")
+@Table(name = "community_user")
+@Entity
 public class CommunityUser {
     public static final String USER_NAME = "user_name";
     public static final String USER_PASSWORD = "user_password";
@@ -23,41 +26,41 @@ public class CommunityUser {
     public static final String NICK_NAME = "nick_name";
 
     @Id
-    @Column("id")
+    @Column(name = "id")
     private Long id;
 
     @CreatedDate
-    @Column("create_time")
+    @Column(name = "create_time")
     private LocalDateTime createTime;
 
     @LastModifiedDate
-    @Column("update_time")
+    @Column(name = "update_time")
     private LocalDateTime updateTime;
 
-    @Column("deleted")
+    @Column(name = "deleted")
     private Boolean deleted;
 
-    @Column("user_name")
+    @Column(name = "user_name", length = 20) // Added length = 20
     private String userName;
 
-    @Column("user_password")
+    @Column(name = "user_password", length = 100) // Added length = 100
     private String userPassword;
 
-    @Column("nick_name")
+    @Column(name = "nick_name", length = 20) // Added length = 20 (based on SQL)
     private String nickName;
 
-    @Column("avatar")
+    @Column(name = "avatar", length = 255) // Added length = 255
     private String avatar;
 
-    @Column("user_profile")
+    @Column(name = "user_profile", length = 100) // Added length = 100
     private String userProfile;
 
-    @Column("gender")
-    private Integer gender;
+    @Column(name = "gender")
+    private Short gender;
 
-    @Column("user_type")
+    @Column(name = "user_type", length = 20) // Added length = 20
     private String userType;
 
-    @Column("user_status")
+    @Column(name = "user_status", length = 20) // Added length = 20
     private String userStatus;
 }

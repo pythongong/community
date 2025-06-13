@@ -4,16 +4,16 @@ import lombok.Getter;
 
 @Getter
 public enum Gender {
-    MALE(0),
-    FEMALE(1);
+    MALE((short) 0),
+    FEMALE((short) 1);
 
-    private final int value;
+    private final short value;
 
-    Gender(int value) {
+    Gender(short value) {
         this.value = value;
     }
 
-    public static int getValue(String gender) {
+    public static short getValue(String gender) {
         for (Gender g : Gender.values()) {
             if (g.name().equals(gender)) {
                 return g.value;

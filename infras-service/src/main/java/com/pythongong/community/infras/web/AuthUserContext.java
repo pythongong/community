@@ -1,50 +1,51 @@
 package com.pythongong.community.infras.web;
 
-import reactor.core.publisher.Mono;
-import reactor.util.context.Context;
-
-import java.util.function.Function;
+// Remove Reactor imports
+// import reactor.core.publisher.Mono;
+// import reactor.util.context.Context;
+// import java.util.function.Function;
 
 public class AuthUserContext {
-    // Use the class type itself as a key for type safety and simplicity
-    public static final Class<AuthUserInfo> AUTH_USER_INFO_KEY = AuthUserInfo.class;
+
+    // Use a ThreadLocal to store AuthUserInfo for the current thread (virtual or
+    // platform)
+    private static final ThreadLocal<AuthUserInfo> AUTH_USER_INFO_THREAD_LOCAL = new ThreadLocal<>();
 
     /**
-     * Retrieves AuthUserInfo from the current Reactor Context.
-     * Returns Mono.empty() if no AuthUserInfo is found.
+     * Sets the AuthUserInfo for the current thread.
+     * This should be called at the beginning of a request or operation scope.
      *
-     * @return A Mono emitting AuthUserInfo if present, otherwise an empty Mono.
+     * @param authUserInfo The AuthUserInfo to set. Can be null to clear.
      */
-    public static Mono<AuthUserInfo> get() {
-        return Mono.deferContextual(contextView -> {
-            if (contextView.hasKey(AUTH_USER_INFO_KEY)) {
-                return Mono.just(contextView.get(AUTH_USER_INFO_KEY));
-            }
-            return Mono.empty();
-        });
+    public static void set(AuthUserInfo authUserInfo) {
+        if (authUserInfo == null) {
+            clear(); // Clear if setting null
+        } else {
+            AUTH_USER_INFO_THREAD_LOCAL.set(authUserInfo);
+        }
     }
 
     /**
-     * Returns a function that can be used with Mono.contextWrite()
-     * to add the provided AuthUserInfo to the Reactor Context.
+     * Retrieves AuthUserInfo from the current thread's ThreadLocal.
      *
-     * Example usage in a filter:
-     * return chain.filter(exchange)
-     * .contextWrite(AuthUserContext.setContext(authUserInfo));
-     *
-     * @param authUserInfo The AuthUserInfo to set in the context.
-     * @return A function to modify the context.
+     * @return The AuthUserInfo if present, otherwise null.
      */
-    public static Function<Context, Context> setContext(AuthUserInfo authUserInfo) {
-        return context -> context.put(AUTH_USER_INFO_KEY, authUserInfo);
+    public static AuthUserInfo get() {
+        return AUTH_USER_INFO_THREAD_LOCAL.get();
     }
 
-    // The forceGet() method is removed as its behavior can be achieved by composing
-    // get(), e.g.:
-    // AuthUserContext.get().switchIfEmpty(Mono.error(new
-    // IllegalStateException("AuthUserInfo not found")));
+    /**
+     * Clears the AuthUserInfo from the current thread's ThreadLocal.
+     * This is crucial to prevent data leakage between requests when using
+     * pooled threads (including virtual threads which can be reused).
+     * This should be called at the end of a request or operation scope.
+     */
+    public static void clear() {
+        AUTH_USER_INFO_THREAD_LOCAL.remove();
+    }
 
-    // The clear() method is removed as Reactor Context is immutable and scoped to a
-    // subscription.
-    // There's no need for an explicit clear operation like with ThreadLocal.
+    // The AUTH_USER_INFO_KEY constant is no longer needed.
+    // The get() method no longer returns Mono.
+    // The setContext() method is replaced by the imperative set() method.
+    // The forceGet() and clear() comments are removed as the new clear() is needed.
 }

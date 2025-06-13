@@ -1,12 +1,40 @@
-
-
 spring:
   application:
     name: user-serive
-  r2dbc:
-    url: r2dbc:mysql://localhost:3306/user_management?serverTimezone=UTC
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_management
     username: root
     password: root
+    driver-class-name: org.postgresql.Driver
+    # Add Connection Pool Configuration (HikariCP defaults)
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: PostgreSQLHikariCP
+      # Spring Boot 3.5
+      initialization-fail-timeout: 5000  # 初始化失败超时时间(毫秒)
+      validation-timeout: 5000         # 连接验证超时时间(毫秒)
+      leak-detection-threshold: 60000  # 连接泄漏检测阈值(毫秒)
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC  # 时区设置
+
+grpc:
+  port: 9000
+  enableReflection: true
 
 jwt:
   access-token:
@@ -15,10 +43,6 @@ jwt:
     expiration: 2592000  # 30 days in seconds
   secret: X80DQf9Jp7sgufQw5aHb5SgnjqRVNgx9+PhAPEHIFv8DT7kPiF45YIta+YG2OJkWKZbTYpXA5W6HOQQrhFP/yA==
   expiration: 86400 # 24 hours in seconds
-
-grpc:
-  port: 9000
-  enableReflection: true
 
 user-service:
   defalut-avatar: https://github.com/pythongong/images/blob/main/Gemini_Generated_Image_buc8kqbuc8kqbuc8.png

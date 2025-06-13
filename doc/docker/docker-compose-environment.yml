@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d # 初始化脚本目录
+      # - ./postgres-init:/docker-entrypoint-initdb.d # 初始化脚本目录
     networks:
       - my-network
     healthcheck:
@@ -60,6 +60,91 @@ services:
       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m' # 设置使用jvm内存大小
     networks:
       - my-network
+
+  # etcd服务配置
+  etcd:
+    image: bitnami/etcd:3.6.1
+    container_name: etcd
+    ports:
+      - "2379:2379"
+    environment:
+      - ETCD_DATA_DIR=/etcd-data
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_CLUSTER=etcd=http://etcd:2380
+      - ETCD_ROOT_PASSWORD=root
+    volumes:
+      - etcd-data:/etcd-data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:2379/version" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - my-network
+
+  # Kafka 4.0.0服务配置（无Zookeeper）
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=C.UTF-8
+      - KAFKA_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - CLUSTER_ID=kafka-cluster
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "nc -z localhost 9092 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - my-network
+
+  debezium:
+    image: debezium/connect:3.0.0.Final
+    container_name: debezium
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect-configs
+      OFFSET_STORAGE_TOPIC: connect-offsets
+      STATUS_STORAGE_TOPIC: connect-status
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_PLUGIN_PATH: /kafka/connect,/usr/share/java
+    volumes:
+      - ./plugins:/kafka/connect
+    networks:
+      - my-network
+
+volumes:
+  postgres-data:
+  etcd-data:
+  kafka-data:
+
 
 networks:
   my-network:
