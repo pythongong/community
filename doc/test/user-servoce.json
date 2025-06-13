@@ -28,5 +28,11 @@
         "userPassword": "12345678",
         "gender": "MALE",
         "nickName": "Jack"
+    },
+    {
+        "userName": "John",
+        "userPassword": "12345678",
+        "gender": "MALE",
+        "nickName": "Jack"
     }
 ]

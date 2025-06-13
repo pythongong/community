@@ -71,14 +71,14 @@ public class UserServiceGrpcImpl extends UserServiceImplBase {
       if (communityUserRepo.countByUserName(userName) > 0) {
         throw new CommunityException(USER_NAME_EXIST + userName);
       }
-
+    }).thenAcceptAsync((res) -> {
       if (communityUserRepo.save(createUser(request)) == null) {
         throw new CommunityException(USER_INSERTION_ERROR);
       }
-      return WebUtil.SUCCESS_RPC;
-    }).whenComplete((response, error) -> {
-      WebUtil.respondRpc(responseObserver, response, error);
-    });
+    }, LoomExecutor.IO_EXECUTOR)
+        .whenComplete((response, error) -> {
+          WebUtil.respondRpc(responseObserver, error);
+        });
   }
 
   @Override

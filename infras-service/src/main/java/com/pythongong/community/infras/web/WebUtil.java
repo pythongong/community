@@ -4,6 +4,7 @@ import com.google.protobuf.Message;
 import com.pythongong.community.infras.common.StringUtil;
 import com.pythongong.community.infras.converter.ConverterUtil;
 import com.pythongong.community.infras.exception.CommunityException;
+import com.pythongong.community.infras.exception.ExceptionUtil;
 import com.pythongong.community.infras.proto.IntVal;
 import com.pythongong.community.infras.validator.CommunityValidator;
 import com.pythongong.community.infras.validator.ValidatorUtil;
@@ -22,13 +23,17 @@ public class WebUtil {
 
     public static final String SUCCESS_MSG = "SUCCESS!";
 
-    public static <T> void respondRpcError(@NonNull StreamObserver<T> responseObserver, @NonNull Throwable error) {
-        if (error.getCause() == null) {
+    private static <T> void respondRpcError(@NonNull StreamObserver<T> responseObserver, @NonNull Throwable error) {
+        Throwable asyncExcep = ExceptionUtil.extractAsyncExcep(error);
+        if (asyncExcep instanceof CommunityException) {
             responseObserver.onError(
-                    io.grpc.Status.ABORTED.withDescription(error.getMessage()).asRuntimeException());
+                    io.grpc.Status.ABORTED.withDescription(asyncExcep.getMessage())
+                            .asRuntimeException());
+        } else {
+            responseObserver.onError(
+                    io.grpc.Status.INTERNAL.withDescription(asyncExcep.getMessage())
+                            .asRuntimeException());
         }
-        responseObserver.onError(
-                io.grpc.Status.ABORTED.withDescription(error.getCause().getMessage()).asRuntimeException());
 
     }
 
@@ -40,7 +45,7 @@ public class WebUtil {
         }
 
         if (response == null) {
-            respondRpcError(responseObserver, new CommunityException("RPC data is null"));
+            respondRpcError(responseObserver, new CommunityException("RPC response is null"));
             return;
         }
 
@@ -48,6 +53,10 @@ public class WebUtil {
 
         responseObserver.onCompleted();
 
+    }
+
+    public static void respondRpc(@NonNull StreamObserver<IntVal> responseObserver, Throwable error) {
+        respondRpc(responseObserver, SUCCESS_RPC, error);
     }
 
     public static <S, T> boolean validateRpcRequest(@NonNull RpcValidationParam<S, T> param) {
