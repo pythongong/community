@@ -1,19 +1,20 @@
-package com.pythongong.community.user.grpc;
+package com.pythongong.community.user.service.user.api;
 
+import com.pythongong.community.infras.common.StringUtil;
+import com.pythongong.community.infras.converter.ConverterUtil;
+import com.pythongong.community.infras.exception.CommunityException;
 import com.pythongong.community.infras.proto.IntVal;
-// Remove ValidParam import
-// import com.pythongong.community.infras.util.ValidParam;
-import com.pythongong.community.infras.util.ConverterUtil;
-import com.pythongong.community.infras.util.StringUtil;
-import com.pythongong.community.infras.util.ValidParam;
-import com.pythongong.community.infras.util.WebUtil;
+import com.pythongong.community.infras.thread.LoomExecutor;
+import com.pythongong.community.infras.validator.ValidatorUtil;
+import com.pythongong.community.infras.web.WebUtil;
 import com.pythongong.community.user.enums.Gender;
-import com.pythongong.community.user.model.CommunityUser;
+import com.pythongong.community.user.enums.UserStatus;
+import com.pythongong.community.user.enums.UserType;
+import com.pythongong.community.user.model.user.entity.CommunityUser;
+import com.pythongong.community.user.model.user.repo.CommunityUserRepo;
 import com.pythongong.community.user.proto.RegisterUserRequest;
 import com.pythongong.community.user.proto.UserServiceGrpc.UserServiceImplBase;
-// Update import to the new JPA repo
-import com.pythongong.community.user.repo.CommunityUserRepo;
-import com.pythongong.community.user.validator.RegisterUserRequestValidator;
+import com.pythongong.community.user.service.user.validator.RegisterUserRequestValidator;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -47,69 +48,55 @@ public class UserServiceGrpcImpl extends UserServiceImplBase {
   private final CommunityUserRepo communityUserRepo;
 
   // Remove ValidParam field
-  private final ValidParam validParam;
+  private final ValidatorUtil validParam;
 
   // Add BCryptPasswordEncoder field for injection
   private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Override
   public void register(RegisterUserRequest request, StreamObserver<IntVal> responseObserver) {
-    // Use ConverterUtil and validator directly
     RegisterUserRequestValidator validator = ConverterUtil.convert(RegisterUserRequestValidator.REQUEST_CONVERTER,
         request);
     String errorMsg = validParam.validate(validator); // Assuming validate() method exists on the validator
     if (!StringUtil.isEmpty(errorMsg)) {
-      responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(errorMsg).asRuntimeException());
+      WebUtil.respondInvalidRpcArgus(responseObserver, errorMsg);
       return;
     }
 
     String userName = request.getUserName();
 
-    try {
-      // Blocking call to JPA repository
-      long count = communityUserRepo.countByUserName(userName);
-
-      if (count > 0) {
-        responseObserver.onError(io.grpc.Status.ALREADY_EXISTS.withDescription(
-            USER_NAME_EXIST + userName).asRuntimeException()); // Added userName to error message
-        return;
+    LoomExecutor.execute(() -> {
+      if (communityUserRepo.countByUserName(userName) > 0) {
+        throw new CommunityException(USER_NAME_EXIST + userName);
       }
 
-      CommunityUser communityUser = createUser(request);
-      // Blocking call to JPA repository
-      CommunityUser savedUser = communityUserRepo.save(communityUser);
-
-      if (savedUser == null || savedUser.getId() == null) {
-        responseObserver.onError(io.grpc.Status.FAILED_PRECONDITION.withDescription(
-            USER_INSERTION_ERROR).asRuntimeException());
+      if (communityUserRepo.save(createUser(request)) == null) {
+        throw new CommunityException(USER_INSERTION_ERROR);
+      }
+      return WebUtil.SUCCESS_RPC;
+    }).whenComplete((response, error) -> {
+      if (error != null) {
+        WebUtil.respondRpcError(responseObserver, error);
         return;
       }
+      WebUtil.respondRpcOK(responseObserver);
 
-      // Success response
-      responseObserver.onNext(WebUtil.SUCCESS_RPC);
-      responseObserver.onCompleted();
-
-    } catch (Exception e) {
-      // Handle potential exceptions during database operations
-      log.error("Error during user registration for user: {}", userName, e);
-      responseObserver.onError(io.grpc.Status.INTERNAL.withDescription("Internal server error during registration")
-          .withCause(e).asRuntimeException());
-    }
+    });
   }
 
   private CommunityUser createUser(RegisterUserRequest request) {
-    // Use injected passwordEncoder
-    // BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(); // Remove this
-    // line
     return new CommunityUser()
         .setUserName(request.getUserName())
-        .setUserPassword(passwordEncoder.encode(request.getUserPassword())) // Use injected encoder
+        .setUserPassword(passwordEncoder.encode(request.getUserPassword()))
         .setGender(Gender.getValue(request.getGender()))
         .setNickName(request.getNickName())
         .setAvatar(StringUtil.isEmpty(request.getAvatar())
             ? defaultAvatar // Use default if empty
             : request.getAvatar()) // Use provided if not empty
-        .setUserProfile(request.getUserProfile());
+        .setUserProfile(request.getUserProfile())
+        .setUserType(UserType.REGULAR.name())
+        .setUserStatus(UserStatus.ACTIVE.name())
+        .setDeleted(false);
   }
 
 }

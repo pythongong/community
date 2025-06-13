@@ -1,8 +1,9 @@
-package com.pythongong.community.user.repo;
+package com.pythongong.community.user.model.user.repo;
 
-import com.pythongong.community.user.model.CommunityUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.pythongong.community.user.model.user.entity.CommunityUser;
 
 import java.util.Optional;
 

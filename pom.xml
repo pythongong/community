@@ -125,6 +125,7 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+
 				<!-- Protobuf plugin to generate Java code from .proto -->
 				<plugin>
 					<groupId>io.github.ascopes</groupId>

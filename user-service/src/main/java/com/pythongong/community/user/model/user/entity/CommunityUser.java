@@ -1,17 +1,16 @@
-package com.pythongong.community.user.model;
+package com.pythongong.community.user.model.user.entity;
 
 import java.time.LocalDateTime;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
@@ -27,13 +26,14 @@ public class CommunityUser {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue
     private Long id;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
-    @LastModifiedDate
+    @UpdateTimestamp
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 

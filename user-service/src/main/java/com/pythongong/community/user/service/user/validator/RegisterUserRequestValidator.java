@@ -1,8 +1,8 @@
-package com.pythongong.community.user.validator;
+package com.pythongong.community.user.service.user.validator;
 
-import com.pythongong.community.infras.util.CommunityConverter;
-import com.pythongong.community.infras.util.CommunityValidator;
-import com.pythongong.community.infras.util.StringUtil;
+import com.pythongong.community.infras.common.StringUtil;
+import com.pythongong.community.infras.converter.CommunityConverter;
+import com.pythongong.community.infras.validator.CommunityValidator;
 import com.pythongong.community.user.enums.Gender;
 import com.pythongong.community.user.proto.RegisterUserRequest;
 import jakarta.validation.constraints.NotEmpty;

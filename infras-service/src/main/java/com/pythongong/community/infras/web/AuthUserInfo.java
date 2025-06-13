@@ -1,5 +1,7 @@
 package com.pythongong.community.infras.web;
 
-public record AuthUserInfo(Long userId, String userType) {
+import lombok.NonNull;
+
+public record AuthUserInfo(@NonNull Long userId) {
 
 }

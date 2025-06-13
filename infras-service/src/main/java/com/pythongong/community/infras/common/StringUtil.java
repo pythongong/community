@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pythongong.community.infras.util;
+package com.pythongong.community.infras.common;
 
 /**
  * Utility class for string operations.

@@ -1,4 +1,4 @@
-package com.pythongong.community.infras.util;
+package com.pythongong.community.infras.validator;
 
 import java.util.Set;
 
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ValidParam {
+public class ValidatorUtil {
 
     private final Validator validator;
 
