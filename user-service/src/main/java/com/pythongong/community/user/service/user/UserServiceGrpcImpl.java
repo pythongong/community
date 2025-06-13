@@ -1,19 +1,21 @@
-package com.pythongong.community.user.service.user.api;
+package com.pythongong.community.user.service.user;
 
 import com.pythongong.community.infras.common.StringUtil;
-import com.pythongong.community.infras.converter.ConverterUtil;
 import com.pythongong.community.infras.exception.CommunityException;
 import com.pythongong.community.infras.proto.IntVal;
+import com.pythongong.community.infras.proto.LongVal;
 import com.pythongong.community.infras.thread.LoomExecutor;
-import com.pythongong.community.infras.validator.ValidatorUtil;
+import com.pythongong.community.infras.web.RpcValidationParam;
 import com.pythongong.community.infras.web.WebUtil;
-import com.pythongong.community.user.enums.Gender;
-import com.pythongong.community.user.enums.UserStatus;
-import com.pythongong.community.user.enums.UserType;
 import com.pythongong.community.user.model.user.entity.CommunityUser;
 import com.pythongong.community.user.model.user.repo.CommunityUserRepo;
+import com.pythongong.community.user.proto.LoginUserRequest;
 import com.pythongong.community.user.proto.RegisterUserRequest;
 import com.pythongong.community.user.proto.UserServiceGrpc.UserServiceImplBase;
+import com.pythongong.community.user.service.user.enums.Gender;
+import com.pythongong.community.user.service.user.enums.UserStatus;
+import com.pythongong.community.user.service.user.enums.UserType;
+import com.pythongong.community.user.service.user.validator.LoginUserRequestValidator;
 import com.pythongong.community.user.service.user.validator.RegisterUserRequestValidator;
 
 import io.grpc.stub.StreamObserver;
@@ -47,22 +49,22 @@ public class UserServiceGrpcImpl extends UserServiceImplBase {
 
   private final CommunityUserRepo communityUserRepo;
 
-  // Remove ValidParam field
-  private final ValidatorUtil validParam;
-
   // Add BCryptPasswordEncoder field for injection
   private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Override
   public void register(RegisterUserRequest request, StreamObserver<IntVal> responseObserver) {
-    RegisterUserRequestValidator validator = ConverterUtil.convert(RegisterUserRequestValidator.REQUEST_CONVERTER,
-        request);
-    String errorMsg = validParam.validate(validator); // Assuming validate() method exists on the validator
-    if (!StringUtil.isEmpty(errorMsg)) {
-      WebUtil.respondInvalidRpcArgus(responseObserver, errorMsg);
+    if (!WebUtil.validateRpcRequest(
+        RpcValidationParam.<RegisterUserRequest, RegisterUserRequestValidator>builder()
+            .responseObserver(responseObserver)
+            .source(request)
+            .converter(RegisterUserRequestValidator.REQUEST_CONVERTER)
+            .validator(RegisterUserRequestValidator.REQUEST_VALIDATOR)
+            .build()
+
+    )) {
       return;
     }
-
     String userName = request.getUserName();
 
     LoomExecutor.execute(() -> {
@@ -75,12 +77,32 @@ public class UserServiceGrpcImpl extends UserServiceImplBase {
       }
       return WebUtil.SUCCESS_RPC;
     }).whenComplete((response, error) -> {
-      if (error != null) {
-        WebUtil.respondRpcError(responseObserver, error);
-        return;
-      }
-      WebUtil.respondRpcOK(responseObserver);
+      WebUtil.respondRpc(responseObserver, response, error);
+    });
+  }
 
+  @Override
+  public void login(LoginUserRequest request, StreamObserver<LongVal> responseObserver) {
+
+    if (!WebUtil.validateRpcRequest(
+        RpcValidationParam.<LoginUserRequest, LoginUserRequestValidator>builder()
+            .responseObserver(responseObserver)
+            .source(request)
+            .converter(LoginUserRequestValidator.REQUEST_CONVERTER)
+            .build())) {
+      return;
+    }
+
+    LoomExecutor.execute(() -> {
+      CommunityUser user = communityUserRepo.findByUserName(request.getUserName())
+          .orElseThrow(() -> new CommunityException("User does not register"));
+      String password = user.getUserPassword();
+      if (!passwordEncoder.matches(request.getUserPassword(), password)) {
+        throw new CommunityException("Wrong password!");
+      }
+      return LongVal.newBuilder().setVal(user.getId()).build();
+    }).whenComplete((response, error) -> {
+      WebUtil.respondRpc(responseObserver, response, error);
     });
   }
 

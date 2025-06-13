@@ -1,6 +1,8 @@
 spring:
   application:
     name: user-serive
+  profiles:
+    active: dev
   threads:
     virtual:
       enabled: true

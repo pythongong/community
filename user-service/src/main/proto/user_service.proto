@@ -12,6 +12,9 @@ option java_package = "com.pythongong.community.user.proto";
 service UserService {
   // Registers a new user
   rpc Register(RegisterUserRequest) returns (infras.proto.IntVal);
+
+  rpc Login(LoginUserRequest) returns (infras.proto.LongVal);
+  
 }
 
 // The request message containing the user's registration details.
@@ -22,5 +25,10 @@ message RegisterUserRequest {
   string nick_name = 4;
   string avatar = 5;        // Optional, maps to your RegisterUserRequest.avatar()
   string user_profile = 6;  // Optional, maps to your RegisterUserRequest.userProfile()
+}
+
+message LoginUserRequest {
+  string userName = 1;
+  string userPassword = 2;
 }
 

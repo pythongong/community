@@ -1,4 +1,4 @@
-package com.pythongong.community.user.enums;
+package com.pythongong.community.user.service.user.enums;
 
 import lombok.Getter;
 

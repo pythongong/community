@@ -3,15 +3,18 @@ package com.pythongong.community.user.service.user.validator;
 import com.pythongong.community.infras.common.StringUtil;
 import com.pythongong.community.infras.converter.CommunityConverter;
 import com.pythongong.community.infras.validator.CommunityValidator;
-import com.pythongong.community.user.enums.Gender;
 import com.pythongong.community.user.proto.RegisterUserRequest;
+import com.pythongong.community.user.service.user.enums.Gender;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+import lombok.Getter;
 
+@Getter
 @Builder
-public class RegisterUserRequestValidator implements CommunityValidator<RegisterUserRequestValidator> {
+public class RegisterUserRequestValidator {
 
     private static final java.util.regex.Pattern urlPattern = java.util.regex.Pattern.compile("^https?://.*$");
 
@@ -25,6 +28,19 @@ public class RegisterUserRequestValidator implements CommunityValidator<Register
                 .avatar(request.getAvatar())
                 .userProfile(request.getUserProfile())
                 .build();
+    };
+
+    public static final CommunityValidator<RegisterUserRequestValidator> REQUEST_VALIDATOR = (source) -> {
+        String avatar = source.getAvatar();
+        if (!StringUtil.isEmpty(avatar) && !urlPattern.matcher(avatar).matches()) {
+            return "Avatar must be a valid URL starting with http:// or https://";
+        }
+
+        if (Gender.getValue(source.getGender()) == -1) {
+            return "Invalid gender";
+        }
+
+        return StringUtil.EMPTY;
     };
 
     @Size(min = 1, max = 20, message = "Username must be between 1 and 20 characters")
@@ -48,23 +64,5 @@ public class RegisterUserRequestValidator implements CommunityValidator<Register
 
     @NotEmpty
     private String gender;
-
-    @Override
-    public String verify() {
-        if (!StringUtil.isEmpty(avatar) && !urlPattern.matcher(avatar).matches()) {
-            return "Avatar must be a valid URL starting with http:// or https://";
-        }
-
-        if (Gender.getValue(gender) == -1) {
-            return "Invalid gender";
-        }
-
-        return StringUtil.EMPTY;
-    }
-
-    @Override
-    public RegisterUserRequestValidator getSoruce() {
-        return this;
-    }
 
 }
