@@ -13,7 +13,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
@@ -42,7 +41,7 @@ public class GrpcServiceRegistration implements DisposableBean {
     @Value("${spring.application.name}")
     private String serviceName;
 
-    @Value("${grpc.service.port}")
+    @Value("${grpc.port}")
     private int servicePort; // Port where the gRPC service is listening
 
     @Value("${etcd.lease-ttl:10}")

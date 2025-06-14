@@ -1,6 +1,5 @@
--- Create the database if it doesn't exist
--- Note: Character set and collation are typically configured at the database or cluster level in PostgreSQL
-CREATE DATABASE IF NOT EXISTS user_management;
+CREATE database user_management;
+
 
 -- Connect to the database (This is a psql command, not standard SQL.
 -- You would typically connect to the database directly when running the script.)
@@ -20,7 +19,7 @@ CREATE TABLE community_user (
     gender SMALLINT NOT NULL, -- User gender (0: male, 1: female)
     user_type VARCHAR(20) DEFAULT 'REGULAR' NOT NULL, -- Type of the user (REGULAR, OFFICIAL, KOL)
     user_status VARCHAR(20) DEFAULT 'ACTIVE' NOT NULL, -- User status (ACTIVE, INACTIVE, BANNED)
-    user_profile VARCHAR(100), -- User profile (max 100 characters)
+    user_profile VARCHAR(100) -- User profile (max 100 characters)
 );
 
 -- Create indexes

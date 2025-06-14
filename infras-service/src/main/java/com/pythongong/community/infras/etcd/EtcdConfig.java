@@ -30,7 +30,6 @@ public class EtcdConfig {
      */
     @Bean
     public Client etcdClient() throws Exception {
-        log.info("Initializing etcd client with endpoints: {}", etcdEndpoints);
         List<String> endpointsList = Arrays.stream(etcdEndpoints.split(","))
                 .map(String::trim)
                 .collect(Collectors.toList());
@@ -50,7 +49,7 @@ public class EtcdConfig {
             // Simple connectivity check (optional, but good for early detection)
             // client.getKVClient().get(ByteSequence.from("health_check")).get(5,
             // TimeUnit.SECONDS);
-            log.info("etcd client initialized successfully.");
+            log.info("Initializing etcd client with endpoints: {}", etcdEndpoints);
             return client;
         } catch (Exception e) {
             log.error("Failed to initialize etcd client with endpoints {}: {}", etcdEndpoints, e.getMessage(), e);

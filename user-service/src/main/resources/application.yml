@@ -7,7 +7,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/user_management
+    url: jdbc:postgresql://121.5.178.199:5432/user_management
     username: root
     password: root
     driver-class-name: org.postgresql.Driver
@@ -53,6 +53,5 @@ user-service:
 
 
 etcd:
-  endpoints: http://localhost:2379  # etcd 地址
-  service-ttl: 30  # 服务租约 TTL（秒）
-  refresh-interval: 20  # 续约间隔（秒）
+  endpoints: http://121.5.178.199:2379  # etcd 地址
+  lease-ttl: 30  # 服务租约 TTL（秒）

@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pythongong.community.infras.exception.CommunityException;
 
 /**
  * Component for client-side gRPC service discovery using etcd.
@@ -41,7 +43,7 @@ public class GrpcServiceDiscovery implements DisposableBean {
     // Using CopyOnWriteArrayList for thread-safe iteration while allowing
     // modifications
     // Using ConcurrentHashMap for thread-safe access to service lists
-    private final ConcurrentHashMap<String, ServiceInstance> serviceInstancesMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<ServiceInstance>> serviceInstancesMap = new ConcurrentHashMap<>();
 
     // Executor for watch operations to avoid blocking main threads
     private final ExecutorService watchExecutor = Executors.newCachedThreadPool(r -> {
@@ -52,6 +54,9 @@ public class GrpcServiceDiscovery implements DisposableBean {
 
     // Keep track of active watchers to close them on shutdown
     private final Set<Watcher> activeWatchers = ConcurrentHashMap.newKeySet();
+
+    // For round-robin load balancing
+    private final ConcurrentHashMap<String, AtomicInteger> serviceIndexMap = new ConcurrentHashMap<>();
 
     public GrpcServiceDiscovery(Client etcdClient) {
         this.etcdClient = etcdClient;
@@ -64,7 +69,7 @@ public class GrpcServiceDiscovery implements DisposableBean {
      *
      * @param serviceName The logical name of the service (e.g., "userService").
      */
-    public void discoverService(String serviceName) {
+    public synchronized void discoverService(String serviceName) {
         String prefix = "/services/" + serviceName + "/";
         ByteSequence prefixBytes = ByteSequence.from(prefix, StandardCharsets.UTF_8);
 
@@ -74,17 +79,22 @@ public class GrpcServiceDiscovery implements DisposableBean {
             GetResponse response = etcdClient.getKVClient().get(
                     prefixBytes,
                     GetOption.builder().isPrefix(true).build()).get();
-            if (response.getCount() > 1) {
-                throw new CommunityException("Ducplicate service instance: " + prefix);
-            }
 
-            ServiceInstance instance = OBJECT_MAPPER.readValue(
-                    response.getKvs().iterator().next().getValue().toString(StandardCharsets.UTF_8),
-                    ServiceInstance.class);
-
-            serviceInstancesMap.put(serviceName, instance);
-
-            log.debug("Discovered initial instance for {}: {}", serviceName, instance);
+            CopyOnWriteArrayList<ServiceInstance> currentInstances = new CopyOnWriteArrayList<>();
+            response.getKvs().forEach(kv -> {
+                try {
+                    ServiceInstance instance = OBJECT_MAPPER.readValue(kv.getValue().toString(StandardCharsets.UTF_8),
+                            ServiceInstance.class);
+                    currentInstances.add(instance);
+                    log.debug("Discovered initial instance for {}: {}", serviceName, instance);
+                } catch (Exception e) {
+                    log.warn("Failed to parse service instance JSON from key {}: {}",
+                            kv.getKey().toString(StandardCharsets.UTF_8), e.getMessage());
+                }
+            });
+            serviceInstancesMap.put(serviceName, currentInstances);
+            serviceIndexMap.putIfAbsent(serviceName, new AtomicInteger(0)); // Initialize index for round-robin
+            log.info("Initial discovery for service '{}' found {} instances.", serviceName, currentInstances.size());
 
             // Set up a watch for future changes if not already watching this prefix
             startWatchingService(serviceName, prefixBytes, response.getHeader().getRevision() + 1);
@@ -105,6 +115,12 @@ public class GrpcServiceDiscovery implements DisposableBean {
      */
     private void startWatchingService(String serviceName, ByteSequence prefixBytes, long startRevision) {
         // Prevent duplicate watchers for the same service prefix
+        // if (activeWatchers.stream()
+        // .anyMatch(w -> w.getWatchRequest().getKey().equals(prefixBytes) &&
+        // w.getWatchRequest().isPrefix())) {
+        // log.debug("Watcher already active for service prefix: {}", serviceName);
+        // return;
+        // }
 
         Watcher watcher = etcdClient.getWatchClient().watch(
                 prefixBytes,
@@ -118,13 +134,23 @@ public class GrpcServiceDiscovery implements DisposableBean {
                             ServiceInstance instance = OBJECT_MAPPER.readValue(
                                     event.getKeyValue().getValue().toString(StandardCharsets.UTF_8),
                                     ServiceInstance.class);
+                            CopyOnWriteArrayList<ServiceInstance> instances = serviceInstancesMap.get(serviceName);
+                            if (instances == null) {
+                                instances = new CopyOnWriteArrayList<>();
+                                serviceInstancesMap.put(serviceName, instances);
+                            }
 
                             switch (event.getEventType()) {
                                 case PUT:
-                                    serviceInstancesMap.put(serviceName, instance);
+                                    if (!instances.contains(instance)) {
+                                        instances.add(instance);
+                                        log.info("Service '{}' instance added: {}", serviceName, instance);
+                                    }
                                     break;
                                 case DELETE:
-                                    serviceInstancesMap.remove(serviceName);
+                                    if (instances.remove(instance)) {
+                                        log.info("Service '{}' instance removed: {}", serviceName, instance);
+                                    }
                                     break;
                                 default:
                                     log.warn("Unhandled etcd watch event type: {}", event.getEventType());
@@ -148,8 +174,7 @@ public class GrpcServiceDiscovery implements DisposableBean {
                     // In a production setup, you would likely re-establish the watch.
                 });
         activeWatchers.add(watcher);
-        log.info("Started etcd watch for service prefix: {} (from revision {})", prefixBytes.toString(),
-                startRevision);
+        log.info("Started etcd watch for service prefix: {} (from revision {})", prefixBytes.toString(), startRevision);
     }
 
     /**
@@ -164,25 +189,37 @@ public class GrpcServiceDiscovery implements DisposableBean {
      */
     public ManagedChannel getManagedChannel(String serviceName) {
         // Ensure initial discovery and watch is active for this service
-        if (serviceInstancesMap.get(serviceName) == null) {
+        if (!serviceInstancesMap.containsKey(serviceName) || serviceInstancesMap.get(serviceName).isEmpty()) {
             discoverService(serviceName); // Attempt initial discovery
             // Give it a moment to discover, or rely on future watch events.
             // For a production app, you might block briefly or use a retry pattern here.
         }
 
-        ServiceInstance instance = serviceInstancesMap.get(serviceName);
+        CopyOnWriteArrayList<ServiceInstance> instances = serviceInstancesMap.getOrDefault(serviceName,
+                new CopyOnWriteArrayList<>());
 
-        if (instance == null) {
-            log.error("No active instances found for service: {}", serviceName);
+        if (instances.isEmpty()) {
+            log.warn("No active instances found for service: {}", serviceName);
             return null;
         }
 
-        log.debug("Selected service instance for {}: {}", serviceName, instance);
+        // Simple round-robin load balancing
+        AtomicInteger index = serviceIndexMap.computeIfAbsent(serviceName, k -> new AtomicInteger(0));
+        int currentIdx = index.getAndIncrement();
+        ServiceInstance selectedInstance = instances.get(currentIdx % instances.size());
+
+        // Reset index to avoid overflow and keep it within bounds of list size for
+        // future access
+        if (index.get() >= instances.size() * 2) { // Reset after two full cycles to minimize modulus operations
+            index.set(0);
+        }
+
+        log.debug("Selected service instance for {}: {}", serviceName, selectedInstance);
 
         // Build and return a gRPC ManagedChannel
         // In a real application, you might cache ManagedChannels per instance
         // or use a gRPC client library that integrates with NameResolver for this.
-        return NettyChannelBuilder.forAddress(instance.host(), instance.port())
+        return NettyChannelBuilder.forAddress(selectedInstance.host(), selectedInstance.port())
                 .usePlaintext() // Use plaintext for simplicity, use .useTransportSecurity() for production with
                                 // TLS
                 .build();
