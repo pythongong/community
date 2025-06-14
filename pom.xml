@@ -36,6 +36,19 @@
 
 		<dependencies>
 
+			<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.19.0</version>
+			</dependency>
+
+			<!-- https://mvnrepository.com/artifact/io.etcd/jetcd-core -->
+			<dependency>
+				<groupId>io.etcd</groupId>
+				<artifactId>jetcd-core</artifactId>
+				<version>0.8.5</version>
+			</dependency>
 
 			<!--
 			https://mvnrepository.com/artifact/org.springframework.grpc/spring-grpc-spring-boot-starter -->

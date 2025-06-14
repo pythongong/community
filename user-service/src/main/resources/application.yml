@@ -37,6 +37,8 @@ spring:
 grpc:
   port: 9000
   enableReflection: true
+  health:
+    enabled: true
 
 jwt:
   access-token:
@@ -48,3 +50,9 @@ jwt:
 
 user-service:
   defalut-avatar: https://github.com/pythongong/images/blob/main/Gemini_Generated_Image_buc8kqbuc8kqbuc8.png
+
+
+etcd:
+  endpoints: http://localhost:2379  # etcd 地址
+  service-ttl: 30  # 服务租约 TTL（秒）
+  refresh-interval: 20  # 续约间隔（秒）
